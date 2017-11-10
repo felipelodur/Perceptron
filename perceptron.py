@@ -7,6 +7,12 @@ from numpy import array, dot, random
 # Lambda Auxiliary Functions
 unitStep = lambda x: 0 if x < 0 else 1
 resultMessage = lambda x,y: 'RIGHT' if x == y else 'WRONG'
+zeroToOne = lambda x: x if 0 < x < 1  else 1
+biggerThanZero = lambda x: x if x > 0 else 1
+operationCheck = lambda x: x if x in ('AND','OR','XOR') else 'AND'
+
+def checkOperation(operation):
+    return operationCheck(operation.upper())
 
 def executeOperation(x,operation):
     switcher = {
@@ -25,9 +31,15 @@ def expectedResult(x,operation):
             result = executeOperation( [x[i], result],operation)
     return result
     
-    
-# TODO - Change to ReadFromFile  
-operation = 'AND'
+
+responseIterations = int(input("Insert number of iterations = "))
+n = biggerThanZero(responseIterations)
+
+responseLearning =  float(input("Insert learning rate = "))
+learningRate = zeroToOne(responseLearning)
+
+responseOperation = input("Choose AND, OR or XOR = ")
+operation = checkOperation(responseOperation)
 
 # TODO - Change to ReadFromFile
 # Structure: (Array [...values, bias], expectedResult)
@@ -43,7 +55,6 @@ training_data = [ (array([0,0,0,1]), 0),
 
 weight = random.rand(4)  # Random Weights for First Iteration
 errors = []              # Difference between expected and prediction values
-learningRate = 0.7       # Learning Rate
 n = 500                  # Iterations
 
 for i in range(n):
