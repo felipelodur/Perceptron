@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-
 # Dependencies
-from random import choice
-from numpy import array, dot, random
+from numpy import dot, random
+import trainingHelper as trainData
 
 # Lambda Auxiliary Functions
 unitStep = lambda x: 0 if x < 0 else 1
@@ -23,14 +21,34 @@ def executeOperation(x,operation):
     
     return switcher.get(operation,'')
 
-# TODO - XOR as Unique value vs XOR as cascade
 def expectedResult(x,operation):
     result = x[0]
     for i in range(len(x)-1):
         if(i != 0):
             result = executeOperation( [x[i], result],operation)
     return result
+        
+
+def trainAndPredict(trainingData, valueToPredict, iterations):
+    weight = random.rand(len(valueToPredict))  # Random Weights for First Iteration
+    errors = []              # Differences between expected and prediction values
     
+    # Train
+    for i in range(iterations):
+        x, expected = trainingData[i % len(trainingData)]
+        result = dot(weight, x)
+        error = expected - unitStep(result)
+        errors.append(error)
+        weight += learningRate * error * x
+    
+    # Predict
+    valuePrediction = unitStep(dot(valueToPredict, weight))
+    print("{}: {} -> {}".format(valueToPredict[:len(valueToPredict)-1],
+          valuePrediction,
+          resultMessage(valuePrediction, expectedResult(valueToPredict,operation)))
+    ) 
+
+
 
 responseIterations = int(input("Insert number of iterations = "))
 n = biggerThanZero(responseIterations)
@@ -41,29 +59,18 @@ learningRate = zeroToOne(responseLearning)
 responseOperation = input("Choose AND, OR or XOR = ")
 operation = checkOperation(responseOperation)
 
-# TODO - Change to ReadFromFile
-# Structure: (Array [...values, bias], expectedResult)
-training_data = [ (array([0,0,0,1]), 0),
-                  (array([0,0,1,1]), 0),
-                  (array([0,1,0,1]), 0),
-                  (array([0,1,1,1]), 0),
-                  (array([1,0,0,1]), 0),
-                  (array([1,0,1,1]), 0),
-                  (array([1,1,0,1]), 0),
-                  (array([1,1,1,1]), 1),
-                ]
+responseFile = input("Insert input filename  = ")
 
-weight = random.rand(4)  # Random Weights for First Iteration
-errors = []              # Difference between expected and prediction values
-n = 500                  # Iterations
+lines = [line.rstrip('\n') for line in open(responseFile)]
 
-for i in range(n):
-    x, expected = choice(training_data)
-    result = dot(weight, x)
-    error = expected - unitStep(result)
-    errors.append(error)
-    weight += learningRate * error * x
+
+for line in lines:
+    inputArray = []
+    for i in range(len(line)):
+        inputArray.append(int(line[i]))
     
-for x, _ in training_data:
-    result = unitStep(dot(x, weight))
-    print("{}: {} -> {}".format(x[:len(x)-1], result, resultMessage(result,expectedResult(x,operation))))
+    trainingData = trainData.getTrainingData(len(line),operation)
+    inputArray.append(1)
+    trainAndPredict(trainingData, inputArray, n)
+
+
